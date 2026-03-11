@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}My Dashboard{% endblock %}
+{% block page_title %}My Training{% endblock %}
+{% block content %}
+<h5 class="mb-3">Welcome back, <strong>{{ session.user_name }}</strong> 👋</h5>
+
+{% if expired %}
+<div class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+  <i class="bi bi-exclamation-circle-fill fs-5"></i>
+  <div><strong>{{ expired|length }} certification(s) expired.</strong> Please contact your manager to arrange renewal.
+    <a href="/my-certifications" class="alert-link ms-1">View details →</a></div>
+</div>
+{% endif %}
+{% if exp_soon %}
+<div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
+  <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+  <div><strong>{{ exp_soon|length }} certification(s) expiring within 30 days.</strong>
+    <a href="/my-certifications" class="alert-link ms-1">View details →</a></div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <!-- Assigned Courses -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex align-items-center">
+        <i class="bi bi-book me-2"></i>My Assigned Courses
+        <span class="ms-auto badge bg-secondary">{{ assigned|length }}</span>
+      </div>
+      <div class="card-body p-0">
+        {% if assigned %}
+        <div class="list-group list-group-flush">
+        {% for c in assigned %}
+        <a href="/courses/{{ c.id }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+          <div class="flex-shrink-0">
+            {% if c.passed %}
+              <span class="badge bg-success rounded-circle p-2"><i class="bi bi-check-lg"></i></span>
+            {% elif c.best_score %}
+              <span class="badge bg-danger rounded-circle p-2"><i class="bi bi-arrow-repeat"></i></span>
+            {% else %}
+              <span class="badge bg-secondary rounded-circle p-2"><i class="bi bi-play"></i></span>
+            {% endif %}
+          </div>
+          <div class="flex-grow-1">
+            <div class="fw-semibold">{{ c.title }}</div>
+            <div class="text-muted small">
+              <span class="badge bg-primary bg-opacity-10 text-primary me-1">{{ c.category }}</span>
+              {% if c.due_date %}<span class="me-1">Due: {{ c.due_date }}</span>{% endif %}
+              {% if c.best_score is not none %}Score: {{ c.best_score|int }}%{% endif %}
+            </div>
+          </div>
+          {% if c.passed %}
+          <span class="badge bg-success">Passed</span>
+          {% elif c.best_score is not none %}
+          <span class="badge bg-danger">Retry</span>
+          {% else %}
+          <span class="badge bg-outline-secondary border text-muted">Start</span>
+          {% endif %}
+        </a>
+        {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-book fs-1 d-block mb-2 text-secondary"></i>No courses assigned yet.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar: notifications + certs -->
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header d-flex align-items-center">
+        <i class="bi bi-patch-check me-2 text-success"></i>My Certifications
+        <a href="/my-certifications" class="btn btn-sm btn-outline-secondary ms-auto">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% if exp_soon or expired %}
+        {% for c in expired[:3] %}
+        <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-semibold small">{{ c.cname }}</div>
+            <div class="text-danger small">Expired {{ c.expiry_date }}</div>
+          </div>
+          <span class="badge bg-danger">!</span>
+        </div>
+        {% endfor %}
+        {% for c in exp_soon[:3] %}
+        <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-semibold small">{{ c.cname }}</div>
+            <div class="text-warning small">Expires {{ c.expiry_date }}</div>
+          </div>
+          <span class="badge bg-warning text-dark">Soon</span>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="text-center text-muted py-3 small"><i class="bi bi-check-circle text-success me-1"></i>All certifications valid.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header d-flex align-items-center">
+        <i class="bi bi-bell me-2"></i>Notifications
+        <a href="/my-notifications" class="btn btn-sm btn-outline-secondary ms-auto">All</a>
+      </div>
+      <div class="card-body p-0" style="max-height:260px;overflow-y:auto">
+        {% for n in notifs %}
+        <div class="px-3 py-2 border-bottom {% if not n.is_read %}bg-light{% endif %}">
+          <div class="fw-semibold small">{{ n.title }}</div>
+          <div class="text-muted small">{{ n.message }}</div>
+          <div class="text-muted" style="font-size:.72rem">{{ n.created_at[:16] }}</div>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-3 small">No notifications.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

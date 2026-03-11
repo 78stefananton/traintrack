@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Report – {{ emp.name }}{% endblock %}
+{% block page_title %}Employee Report{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="/admin/reports" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <h5 class="mb-0">Report: {{ emp.name }}</h5>
+  <button onclick="window.print()" class="btn btn-sm btn-outline-secondary ms-auto"><i class="bi bi-printer me-1"></i>Print</button>
+</div>
+
+<!-- Employee Info -->
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2">
+      <div class="col-sm-3"><span class="text-muted small">Name</span><div class="fw-semibold">{{ emp.name }}</div></div>
+      <div class="col-sm-3"><span class="text-muted small">Employee ID</span><div>{{ emp.employee_id or '—' }}</div></div>
+      <div class="col-sm-3"><span class="text-muted small">Department</span><div>{{ emp.department or '—' }}</div></div>
+      <div class="col-sm-3"><span class="text-muted small">Position</span><div>{{ emp.position or '—' }}</div></div>
+      <div class="col-sm-3"><span class="text-muted small">Email</span><div>{{ emp.email }}</div></div>
+      <div class="col-sm-3"><span class="text-muted small">Phone</span><div>{{ emp.phone or '—' }}</div></div>
+      <div class="col-sm-3"><span class="text-muted small">Status</span>
+        <div><span class="badge bg-{{ 'success' if emp.is_active else 'secondary' }}">{{ 'Active' if emp.is_active else 'Inactive' }}</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Certifications -->
+<div class="card mb-3">
+  <div class="card-header"><i class="bi bi-patch-check me-2"></i>Certifications</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Certification</th><th>Category</th><th>Issue Date</th><th>Expiry Date</th><th>Status</th><th>Issuer</th><th>Cert #</th></tr></thead>
+      <tbody>
+      {% for c in certs %}
+      {% if c.expiry_date < today %}
+        {% set badge='danger' %}{% set label='Expired' %}
+      {% elif c.expiry_date <= thirty %}
+        {% set badge='warning' %}{% set label='Expiring Soon' %}
+      {% else %}
+        {% set badge='success' %}{% set label='Valid' %}
+      {% endif %}
+      <tr>
+        <td><strong>{{ c.cname }}</strong></td>
+        <td>{{ c.category }}</td>
+        <td>{{ c.issue_date }}</td>
+        <td class="fw-semibold text-{{ badge }}">{{ c.expiry_date }}</td>
+        <td><span class="badge bg-{{ badge }}">{{ label }}</span></td>
+        <td>{{ c.issuer or '—' }}</td>
+        <td>{{ c.certificate_number or '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-muted text-center py-3">No certifications on file.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- Assigned Courses -->
+<div class="card mb-3">
+  <div class="card-header"><i class="bi bi-book me-2"></i>Assigned Training Courses</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Course</th><th>Category</th><th>Due Date</th><th>Best Score</th><th>Attempts</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for c in assigned %}
+      <tr>
+        <td><strong>{{ c.title }}</strong></td>
+        <td>{{ c.category }}</td>
+        <td>{{ c.due_date or '—' }}</td>
+        <td>
+          {% if c.best_score is not none %}
+          <span class="badge bg-{{ 'success' if c.passed else 'danger' }}">{{ c.best_score|int }}%</span>
+          {% else %}—{% endif %}
+        </td>
+        <td>{{ c.attempts or 0 }}</td>
+        <td>
+          {% if c.passed %}<span class="badge bg-success">Passed</span>
+          {% elif c.attempts %}<span class="badge bg-danger">Not Passed</span>
+          {% else %}<span class="badge bg-secondary">Not Started</span>{% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="text-muted text-center py-3">No courses assigned.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+<p class="text-muted small text-end">Report generated: {{ today }}</p>
+{% endblock %}

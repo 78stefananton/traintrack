@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block content %}
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card text-center py-3">
+      <div class="fs-2 fw-bold text-primary">{{ emp_count }}</div>
+      <div class="text-muted small">Active Employees</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center py-3">
+      <div class="fs-2 fw-bold text-success">{{ course_count }}</div>
+      <div class="text-muted small">Active Courses</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center py-3">
+      <div class="fs-2 fw-bold text-warning">{{ exp_soon|length }}</div>
+      <div class="text-muted small">Certs Expiring &lt;30d</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center py-3">
+      <div class="fs-2 fw-bold text-danger">{{ expired|length }}</div>
+      <div class="text-muted small">Expired Certs</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Expiring certs alert -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill text-warning"></i> Certifications Expiring Soon
+        <a href="/admin/certifications" class="btn btn-sm btn-outline-secondary ms-auto">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% if exp_soon %}
+        <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+          <thead><tr><th>Employee</th><th>Certification</th><th>Expires</th></tr></thead>
+          <tbody>
+          {% for c in exp_soon %}
+          {% set days=(c.expiry_date|string) %}
+          <tr>
+            <td>{{ c.uname }}</td>
+            <td>{{ c.cname }}</td>
+            <td>
+              {% set exp=c.expiry_date %}
+              <span class="{% if exp <= today %}status-danger fw-bold{% elif exp <= (today[:7]+'-'+('%02d'%(today[8:10]|int+7))) %}status-warn fw-semibold{% else %}status-ok{% endif %}">
+                {{ c.expiry_date }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        </div>
+        {% else %}
+        <div class="p-3 text-muted text-center"><i class="bi bi-check-circle text-success me-2"></i>No certifications expiring in the next 30 days.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent completions -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="bi bi-trophy text-success"></i> Recent Test Results
+      </div>
+      <div class="card-body p-0">
+        {% if recent_comp %}
+        <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+          <thead><tr><th>Employee</th><th>Course</th><th>Score</th><th>Date</th></tr></thead>
+          <tbody>
+          {% for c in recent_comp %}
+          <tr>
+            <td>{{ c.uname }}</td>
+            <td class="text-truncate" style="max-width:130px">{{ c.ctitle }}</td>
+            <td><span class="badge {% if c.passed %}bg-success{% else %}bg-danger{% endif %}">{{ c.score|int }}%</span></td>
+            <td class="text-muted small">{{ c.completed_at[:10] }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        </div>
+        {% else %}
+        <div class="p-3 text-muted text-center">No completions yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart + Notifications -->
+<div class="row g-3">
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-bar-chart me-2"></i>Course Completions</div>
+      <div class="card-body"><canvas id="courseChart" height="180"></canvas></div>
+    </div>
+  </div>
+  <div class="col-md-5">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center">
+        <i class="bi bi-bell me-2"></i>Recent Alerts
+        <a href="/admin/notifications" class="btn btn-sm btn-outline-secondary ms-auto">All</a>
+      </div>
+      <div class="card-body p-0" style="max-height:280px;overflow-y:auto">
+        {% for n in notifs %}
+        <div class="d-flex gap-2 px-3 py-2 border-bottom {% if not n.is_read %}bg-light{% endif %}">
+          <i class="bi bi-{% if n.type=='warning' %}exclamation-triangle-fill text-warning{% elif n.type=='success' %}check-circle-fill text-success{% else %}info-circle-fill text-info{% endif %} mt-1 flex-shrink-0"></i>
+          <div>
+            <div class="fw-semibold" style="font-size:.82rem">{{ n.title }}</div>
+            <div class="text-muted" style="font-size:.77rem">{{ n.message }}</div>
+            <div class="text-muted" style="font-size:.72rem">{{ n.created_at[:16] }}</div>
+          </div>
+        </div>
+        {% else %}
+        <div class="p-3 text-muted text-center">No notifications.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const labels = [{% for c in chart_data %}"{{ c.title[:20] }}",{% endfor %}];
+const total  = [{% for c in chart_data %}{{ c.total }},{% endfor %}];
+const passed = [{% for c in chart_data %}{{ c.passed or 0 }},{% endfor %}];
+new Chart(document.getElementById('courseChart'),{
+  type:'bar',
+  data:{labels,datasets:[
+    {label:'Total Attempts',data:total,backgroundColor:'rgba(26,111,196,.25)',borderColor:'rgba(26,111,196,1)',borderWidth:1},
+    {label:'Passed',data:passed,backgroundColor:'rgba(39,174,96,.35)',borderColor:'rgba(39,174,96,1)',borderWidth:1},
+  ]},
+  options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
+});
+</script>
+{% endblock %}

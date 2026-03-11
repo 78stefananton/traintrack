@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block title %}Certifications{% endblock %}
+{% block page_title %}Certifications{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0"><i class="bi bi-patch-check me-2"></i>Personnel Certifications</h5>
+  <div class="d-flex gap-2">
+    <a href="/admin/cert-types" class="btn btn-sm btn-outline-secondary"><i class="bi bi-tags me-1"></i>Cert Types</a>
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addCertModal">
+      <i class="bi bi-plus-lg me-1"></i>Add Certification</button>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card mb-3">
+  <div class="card-body py-2 px-3 d-flex gap-3 align-items-center flex-wrap">
+    <input type="text" id="certSearch" class="form-control form-control-sm" placeholder="Search…" style="max-width:220px">
+    <select id="statusFilter" class="form-select form-select-sm" style="max-width:160px">
+      <option value="">All Statuses</option>
+      <option value="expired">Expired</option>
+      <option value="expiring">Expiring &lt;30d</option>
+      <option value="valid">Valid</option>
+    </select>
+    <select id="deptFilter" class="form-select form-select-sm" style="max-width:160px">
+      <option value="">All Departments</option>
+      {% for e in employees %}{% if e.department %}
+      <option>{{ e.department }}</option>
+      {% endif %}{% endfor %}
+    </select>
+    <span class="ms-auto text-muted small" id="certCount">{{ certs|length }} records</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+    <table class="table table-hover mb-0" id="certTable">
+      <thead><tr>
+        <th>Employee</th><th>Dept</th><th>Certification</th><th>Category</th>
+        <th>Issue Date</th><th>Expiry Date</th><th>Status</th><th>Cert #</th><th></th>
+      </tr></thead>
+      <tbody>
+      {% for c in certs %}
+      {% if c.expiry_date < today %}
+        {% set status='expired' %}{% set badge='danger' %}{% set label='Expired' %}
+      {% elif c.expiry_date <= thirty %}
+        {% set status='expiring' %}{% set badge='warning' %}{% set label='Expiring Soon' %}
+      {% else %}
+        {% set status='valid' %}{% set badge='success' %}{% set label='Valid' %}
+      {% endif %}
+      <tr data-status="{{ status }}" data-dept="{{ c.department }}">
+        <td><strong>{{ c.uname }}</strong></td>
+        <td class="text-muted small">{{ c.department or '—' }}</td>
+        <td>{{ c.cname }}</td>
+        <td><span class="badge bg-secondary bg-opacity-10 text-secondary">{{ c.category }}</span></td>
+        <td>{{ c.issue_date }}</td>
+        <td class="fw-semibold text-{{ badge }}">{{ c.expiry_date }}</td>
+        <td><span class="badge bg-{{ badge }}">{{ label }}</span></td>
+        <td class="text-muted small">{{ c.certificate_number or '—' }}</td>
+        <td>
+          <div class="btn-group btn-group-sm">
+            {% if c.file_path %}
+            <a href="/uploads/{{ c.file_path }}" target="_blank" class="btn btn-outline-secondary" title="View file">
+              <i class="bi bi-file-earmark"></i></a>
+            {% endif %}
+            <a href="/admin/certifications/{{ c.id }}/edit" class="btn btn-outline-primary" title="Edit">
+              <i class="bi bi-pencil"></i></a>
+            <form method="POST" action="/admin/certifications/{{ c.id }}/delete" onsubmit="return confirm('Delete this certification?')">
+              <button class="btn btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" class="text-center text-muted py-4">No certifications recorded yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Cert Modal -->
+<div class="modal fade" id="addCertModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="POST" action="/admin/certifications/new" enctype="multipart/form-data">
+        <div class="modal-header"><h5 class="modal-title"><i class="bi bi-patch-check me-2"></i>Add Certification</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Employee *</label>
+              <select name="user_id" class="form-select" required>
+                <option value="">Select employee…</option>
+                {% for e in employees %}
+                <option value="{{ e.id }}">{{ e.name }}{% if e.department %} ({{ e.department }}){% endif %}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Certification Type *</label>
+              <select name="cert_type_id" class="form-select" required>
+                <option value="">Select type…</option>
+                {% for t in cert_types %}
+                <option value="{{ t.id }}">{{ t.name }} ({{ t.category }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Issue Date *</label>
+              <input type="date" name="issue_date" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Expiry Date *</label>
+              <input type="date" name="expiry_date" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Issued By</label>
+              <input type="text" name="issuer" class="form-control" placeholder="e.g. Red Cross, Internal">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Certificate Number</label>
+              <input type="text" name="certificate_number" class="form-control">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Notes</label>
+              <textarea name="notes" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label"><i class="bi bi-upload me-1"></i>Upload Certificate File <small class="text-muted">(PDF, image)</small></label>
+              <input type="file" name="cert_file" class="form-control" accept=".pdf,.png,.jpg,.jpeg,.gif">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>Save Certification</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function applyFilters(){
+  const q    = document.getElementById('certSearch').value.toLowerCase();
+  const stat = document.getElementById('statusFilter').value;
+  const dept = document.getElementById('deptFilter').value;
+  let count  = 0;
+  document.querySelectorAll('#certTable tbody tr[data-status]').forEach(r=>{
+    const text = r.textContent.toLowerCase();
+    const show = (!q||text.includes(q)) &&
+                 (!stat||r.dataset.status===stat) &&
+                 (!dept||r.dataset.dept===dept);
+    r.style.display = show ? '' : 'none';
+    if(show) count++;
+  });
+  document.getElementById('certCount').textContent = count + ' records';
+}
+['certSearch','statusFilter','deptFilter'].forEach(id=>
+  document.getElementById(id).addEventListener('input', applyFilters));
+
+// Auto-fill expiry based on cert type validity
+document.querySelector('[name=cert_type_id]').addEventListener('change', function(){
+  const issueInput = document.querySelector('[name=issue_date]');
+  const expiryInput = document.querySelector('[name=expiry_date]');
+  if(issueInput.value) updateExpiry();
+  issueInput.addEventListener('change', updateExpiry);
+  function updateExpiry(){
+    const sel = this.closest('form').querySelector('[name=cert_type_id]');
+    // validity months stored in option text as hint
+    if(!issueInput.value) return;
+    const d = new Date(issueInput.value);
+    d.setMonth(d.getMonth() + 12);
+    expiryInput.value = d.toISOString().split('T')[0];
+  }
+});
+</script>
+{% endblock %}

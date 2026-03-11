@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}System Settings{% endblock %}
+{% block content %}
+<div class="row g-4">
+<div class="col-md-7">
+  <form method="POST">
+  <div class="card mb-3">
+    <div class="card-header"><i class="bi bi-building me-2"></i>Company</div>
+    <div class="card-body">
+      <label class="form-label">Company Name</label>
+      <input type="text" name="company_name" class="form-control" value="{{ settings.company_name }}">
+    </div>
+  </div>
+  <div class="card mb-3">
+    <div class="card-header"><i class="bi bi-envelope me-2"></i>Email / Notification Settings</div>
+    <div class="card-body">
+      <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" name="notifications_enabled" id="notifEnabled"
+               value="1" {{ 'checked' if settings.notifications_enabled=='1' }}>
+        <label class="form-check-label fw-semibold" for="notifEnabled">Enable Email Notifications</label>
+        <div class="text-muted small">When enabled, expiry reminders are sent automatically at 30, 21, 14, 7, 3, and 1 day before expiry.</div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label class="form-label">SMTP Server</label>
+          <input type="text" name="smtp_server" class="form-control" value="{{ settings.smtp_server }}" placeholder="smtp.gmail.com">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Port</label>
+          <input type="number" name="smtp_port" class="form-control" value="{{ settings.smtp_port }}" placeholder="587">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email Address (sender)</label>
+          <input type="email" name="smtp_email" class="form-control" value="{{ settings.smtp_email }}" placeholder="yourapp@gmail.com">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email Password / App Password</label>
+          <input type="password" name="smtp_password" class="form-control" value="{{ settings.smtp_password }}" autocomplete="new-password">
+          <div class="form-text">For Gmail: use an <a href="https://support.google.com/accounts/answer/185833" target="_blank">App Password</a>, not your login password.</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">From Name</label>
+          <input type="text" name="smtp_from_name" class="form-control" value="{{ settings.smtp_from_name }}" placeholder="TrainTrack">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Admin Notification Email</label>
+          <input type="email" name="admin_notification_email" class="form-control" value="{{ settings.admin_notification_email }}"
+                 placeholder="manager@company.com">
+          <div class="form-text">Receives a copy of all expiry alerts.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>Save Settings</button>
+  </form>
+</div>
+
+<div class="col-md-5">
+  <div class="card mb-3">
+    <div class="card-header"><i class="bi bi-envelope-check me-2"></i>Test Email</div>
+    <div class="card-body">
+      <p class="text-muted small">Send a test email to verify your SMTP configuration.</p>
+      <form method="POST" action="/admin/settings/test-email">
+        <div class="input-group">
+          <input type="email" name="test_email" class="form-control" placeholder="test@example.com" required>
+          <button type="submit" class="btn btn-outline-primary">Send Test</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="card mb-3">
+    <div class="card-header"><i class="bi bi-bell me-2"></i>Manual Notification Check</div>
+    <div class="card-body">
+      <p class="text-muted small">Run the expiry check right now (normally runs daily at startup).</p>
+      <form method="POST" action="/admin/settings/run-notifications">
+        <button type="submit" class="btn btn-outline-warning w-100">
+          <i class="bi bi-play-circle me-1"></i>Run Check Now</button>
+      </form>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><i class="bi bi-info-circle me-2"></i>Default Login</div>
+    <div class="card-body small text-muted">
+      <p>Default admin credentials (change after first login):</p>
+      <code>Email: admin@company.com<br>Password: Admin@123</code>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}TrainTrack{% endblock %} – {{ company }}</title>
+<link rel="manifest" href="/static/manifest.json">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<style>
+:root{--sidebar-w:230px;--brand:#1a6fc4}
+body{background:#f4f6f9;font-size:.92rem}
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:#1a2035;position:fixed;top:0;left:0;z-index:100;transition:.3s}
+.sidebar .brand{padding:1.1rem 1rem;font-weight:700;font-size:1.1rem;color:#fff;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:.5rem}
+.sidebar .brand i{color:#4dabf7}
+.sidebar .nav-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.4);padding:.8rem 1rem .2rem}
+.sidebar .nav-link{color:rgba(255,255,255,.75);padding:.45rem 1rem;border-radius:6px;margin:1px 8px;display:flex;align-items:center;gap:.55rem;transition:.15s}
+.sidebar .nav-link:hover,.sidebar .nav-link.active{background:rgba(255,255,255,.1);color:#fff}
+.sidebar .nav-link i{width:18px;text-align:center;font-size:1rem}
+.topbar{height:54px;background:#fff;border-bottom:1px solid #e2e6ea;display:flex;align-items:center;padding:0 1.25rem;gap:1rem;position:sticky;top:0;z-index:99}
+.main-content{margin-left:var(--sidebar-w);padding:1.5rem}
+.card{border:none;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.07)}
+.card-header{background:#fff;border-bottom:1px solid #f0f0f0;font-weight:600}
+.badge-notif{background:#e74c3c;color:#fff;font-size:.65rem;min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px}
+.status-ok{color:#27ae60} .status-warn{color:#e67e22} .status-danger{color:#e74c3c}
+.btn-sm{font-size:.8rem}
+.table th{font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:#6c757d;font-weight:600}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main-content{margin-left:0}}
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+  <div class="brand"><i class="bi bi-mortarboard-fill"></i>TrainTrack</div>
+
+  {% if session.role == 'admin' %}
+  <div class="nav-label">Overview</div>
+  <a class="nav-link {% if request.endpoint=='admin_dashboard' %}active{% endif %}" href="/admin">
+    <i class="bi bi-speedometer2"></i> Dashboard</a>
+
+  <div class="nav-label">Training</div>
+  <a class="nav-link {% if 'course' in request.endpoint %}active{% endif %}" href="/admin/courses">
+    <i class="bi bi-book"></i> Courses</a>
+  <a class="nav-link {% if 'employee' in request.endpoint %}active{% endif %}" href="/admin/employees">
+    <i class="bi bi-people"></i> Employees</a>
+
+  <div class="nav-label">Certifications</div>
+  <a class="nav-link {% if request.endpoint=='admin_certifications' %}active{% endif %}" href="/admin/certifications">
+    <i class="bi bi-patch-check"></i> Certifications</a>
+  <a class="nav-link {% if request.endpoint=='admin_cert_types' %}active{% endif %}" href="/admin/cert-types">
+    <i class="bi bi-tags"></i> Cert Types</a>
+
+  <div class="nav-label">Reports</div>
+  <a class="nav-link {% if 'report' in request.endpoint %}active{% endif %}" href="/admin/reports">
+    <i class="bi bi-bar-chart"></i> Reports</a>
+
+  <div class="nav-label">System</div>
+  <a class="nav-link {% if request.endpoint=='admin_notifications' %}active{% endif %}" href="/admin/notifications">
+    <i class="bi bi-bell"></i> Notifications
+    {% if unread_count > 0 %}<span class="ms-auto badge-notif">{{ unread_count }}</span>{% endif %}
+  </a>
+  <a class="nav-link {% if request.endpoint=='admin_settings' %}active{% endif %}" href="/admin/settings">
+    <i class="bi bi-gear"></i> Settings</a>
+
+  {% else %}
+  <div class="nav-label">My Training</div>
+  <a class="nav-link {% if request.endpoint=='employee_dashboard' %}active{% endif %}" href="/dashboard">
+    <i class="bi bi-house"></i> Dashboard</a>
+  <a class="nav-link {% if 'history' in request.endpoint %}active{% endif %}" href="/my-history">
+    <i class="bi bi-clock-history"></i> My History</a>
+  <a class="nav-link {% if 'my_certs' in request.endpoint %}active{% endif %}" href="/my-certifications">
+    <i class="bi bi-patch-check"></i> My Certifications</a>
+  <a class="nav-link {% if 'notification' in request.endpoint %}active{% endif %}" href="/my-notifications">
+    <i class="bi bi-bell"></i> Notifications
+    {% if unread_count > 0 %}<span class="ms-auto badge-notif">{{ unread_count }}</span>{% endif %}
+  </a>
+  {% endif %}
+
+  <div class="mt-auto" style="padding:1rem 8px">
+    <a class="nav-link" href="/change-password"><i class="bi bi-key"></i> Change Password</a>
+    <a class="nav-link" href="/logout"><i class="bi bi-box-arrow-left"></i> Logout</a>
+  </div>
+</nav>
+
+<!-- Top Bar -->
+<div class="topbar" style="margin-left:var(--sidebar-w)" id="topbar">
+  <button class="btn btn-sm btn-outline-secondary d-md-none" onclick="document.getElementById('sidebar').classList.toggle('open')">
+    <i class="bi bi-list"></i></button>
+  <span class="fw-semibold text-muted">{% block page_title %}{% endblock %}</span>
+  <div class="ms-auto d-flex align-items-center gap-3">
+    <a href="{% if session.role=='admin' %}/admin/notifications{% else %}/my-notifications{% endif %}" class="text-secondary position-relative">
+      <i class="bi bi-bell fs-5"></i>
+      {% if unread_count > 0 %}
+      <span class="position-absolute top-0 start-100 translate-middle badge-notif">{{ unread_count }}</span>
+      {% endif %}
+    </a>
+    <span class="text-secondary"><i class="bi bi-person-circle"></i> {{ session.user_name }}</span>
+  </div>
+</div>
+
+<div class="main-content" id="main">
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in msgs %}
+  <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Poll notification count every 60s
+setInterval(()=>{
+  fetch('/api/notifications/count').then(r=>r.json()).then(d=>{
+    document.querySelectorAll('.badge-notif').forEach(el=>{
+      el.textContent=d.count; el.style.display=d.count>0?'inline-flex':'none';
+    });
+  }).catch(()=>{});
+}, 60000);
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

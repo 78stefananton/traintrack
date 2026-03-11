@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Courses{% endblock %}
+{% block page_title %}Courses{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0"><i class="bi bi-book me-2"></i>All Courses</h5>
+  <a href="/admin/courses/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New Course</a>
+</div>
+<div class="row g-3">
+{% for c in courses %}
+<div class="col-md-6 col-xl-4">
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="d-flex align-items-start justify-content-between mb-2">
+        <span class="badge bg-primary bg-opacity-10 text-primary">{{ c.category }}</span>
+        <span class="badge bg-secondary bg-opacity-10 text-secondary">Pass: {{ c.passing_score }}%</span>
+      </div>
+      <h6 class="fw-bold mb-1">{{ c.title }}</h6>
+      <p class="text-muted small mb-3">{{ c.description[:100] }}{% if c.description|length > 100 %}…{% endif %}</p>
+      <div class="d-flex gap-3 text-muted small mb-3">
+        <span><i class="bi bi-journals me-1"></i>{{ c.lcount }} lessons</span>
+        <span><i class="bi bi-question-circle me-1"></i>{{ c.qcount }} questions</span>
+        <span><i class="bi bi-people me-1"></i>{{ c.assigned }} assigned</span>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="/admin/courses/{{ c.id }}/builder" class="btn btn-sm btn-primary flex-grow-1">
+          <i class="bi bi-pencil-square me-1"></i>Edit / Build</a>
+        <form method="POST" action="/admin/courses/{{ c.id }}/delete" onsubmit="return confirm('Archive this course?')">
+          <button class="btn btn-sm btn-outline-danger"><i class="bi bi-archive"></i></button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="col-12">
+  <div class="card text-center py-5 text-muted">
+    <i class="bi bi-book fs-1 mb-2 text-secondary"></i>
+    <p>No courses yet. <a href="/admin/courses/new">Create your first course.</a></p>
+  </div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}

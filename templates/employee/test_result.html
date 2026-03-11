@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Test Result{% endblock %}
+{% block page_title %}Test Result{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-4">
+<div class="col-md-6 text-center">
+  <div class="card">
+    <div class="card-body py-5">
+      {% if passed %}
+      <i class="bi bi-trophy-fill text-warning" style="font-size:4rem"></i>
+      <h3 class="fw-bold mt-3 text-success">Congratulations!</h3>
+      <p class="text-muted">You passed <strong>{{ course.title }}</strong></p>
+      {% else %}
+      <i class="bi bi-arrow-repeat text-secondary" style="font-size:4rem"></i>
+      <h3 class="fw-bold mt-3 text-danger">Not Passed</h3>
+      <p class="text-muted">Keep studying and try again!</p>
+      {% endif %}
+
+      <div class="display-3 fw-bold my-3 text-{{ 'success' if passed else 'danger' }}">{{ score }}%</div>
+
+      <div class="row g-2 text-muted small mb-4">
+        <div class="col-4"><div class="card py-2"><div class="fw-semibold">Required</div>{{ course.passing_score }}%</div></div>
+        <div class="col-4"><div class="card py-2"><div class="fw-semibold">Your Score</div>{{ score }}%</div></div>
+        <div class="col-4"><div class="card py-2"><div class="fw-semibold">Attempt</div>#{{ attempt }}</div></div>
+      </div>
+
+      <div class="d-flex gap-2 justify-content-center">
+        {% if not passed %}
+        <a href="/courses/{{ course.id }}/test" class="btn btn-primary">
+          <i class="bi bi-arrow-repeat me-1"></i>Try Again</a>
+        {% endif %}
+        <a href="/courses/{{ course.id }}" class="btn btn-outline-secondary">
+          <i class="bi bi-book me-1"></i>Back to Course</a>
+        <a href="/dashboard" class="btn btn-outline-secondary">
+          <i class="bi bi-house me-1"></i>Dashboard</a>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

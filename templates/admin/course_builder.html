@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% block title %}Course Builder – {{ course.title }}{% endblock %}
+{% block page_title %}Course Builder{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="/admin/courses" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <h5 class="mb-0 fw-bold">{{ course.title }}</h5>
+  <span class="badge bg-primary bg-opacity-10 text-primary">{{ course.category }}</span>
+  <a href="/admin/courses/{{ course.id }}/edit" class="btn btn-sm btn-outline-secondary ms-auto">
+    <i class="bi bi-pencil me-1"></i>Edit Details</a>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-3" id="builderTabs">
+  <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-lessons"><i class="bi bi-journals me-1"></i>Lessons ({{ lessons|length }})</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-quiz"><i class="bi bi-question-circle me-1"></i>Test Questions ({{ questions|length }})</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-assign"><i class="bi bi-people me-1"></i>Assign Employees</a></li>
+</ul>
+
+<div class="tab-content">
+
+<!-- LESSONS TAB -->
+<div class="tab-pane fade show active" id="tab-lessons">
+  <div class="card mb-3">
+    <div class="card-header d-flex align-items-center">
+      <i class="bi bi-journals me-2"></i>Course Lessons
+      <button class="btn btn-sm btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#addLessonModal">
+        <i class="bi bi-plus-lg me-1"></i>Add Lesson</button>
+    </div>
+    <div class="card-body p-0">
+      {% if lessons %}
+      <div class="list-group list-group-flush">
+      {% for l in lessons %}
+      <div class="list-group-item d-flex align-items-center gap-3">
+        <span class="badge bg-secondary rounded-pill">{{ loop.index }}</span>
+        <div class="flex-grow-1">
+          <div class="fw-semibold">{{ l.title }}</div>
+          <div class="small text-muted">
+            {% if l.content %}<span class="me-2"><i class="bi bi-text-left"></i> Content</span>{% endif %}
+            {% if l.video_url %}<span class="me-2"><i class="bi bi-play-circle"></i> Video</span>{% endif %}
+            {% if l.fcount > 0 %}<span class="me-2"><i class="bi bi-paperclip"></i> {{ l.fcount }} file(s)</span>{% endif %}
+          </div>
+        </div>
+        <div class="btn-group btn-group-sm">
+          <a href="/admin/lessons/{{ l.id }}/edit" class="btn btn-outline-primary"><i class="bi bi-pencil me-1"></i>Edit</a>
+          <form method="POST" action="/admin/lessons/{{ l.id }}/delete" onsubmit="return confirm('Delete this lesson?')">
+            <button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-4">No lessons yet. Click <strong>Add Lesson</strong> to start.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- QUIZ TAB -->
+<div class="tab-pane fade" id="tab-quiz">
+  <div class="card mb-3">
+    <div class="card-header d-flex align-items-center">
+      <i class="bi bi-question-circle me-2"></i>Test Questions
+      <span class="ms-2 badge bg-secondary">Passing: {{ course.passing_score }}%</span>
+      <button class="btn btn-sm btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#addQuestionModal">
+        <i class="bi bi-plus-lg me-1"></i>Add Question</button>
+    </div>
+    <div class="card-body p-0">
+      {% if questions %}
+      <div class="list-group list-group-flush">
+      {% for q in questions %}
+      <div class="list-group-item">
+        <div class="d-flex align-items-start gap-2">
+          <span class="badge bg-primary rounded-pill mt-1">{{ loop.index }}</span>
+          <div class="flex-grow-1">
+            <div class="fw-semibold">{{ q.question_text }}</div>
+            <span class="badge bg-light text-muted border">{{ q.question_type.replace('_',' ').title() }}</span>
+            <span class="text-muted small ms-2">{{ q.ocount }} options</span>
+          </div>
+          <form method="POST" action="/admin/questions/{{ q.id }}/delete" onsubmit="return confirm('Delete?')">
+            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-4">No questions yet. The test will not be shown to employees until questions are added.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN TAB -->
+<div class="tab-pane fade" id="tab-assign">
+  <div class="card">
+    <div class="card-header"><i class="bi bi-people me-2"></i>Assign to Employees</div>
+    <div class="card-body">
+      <form method="POST" action="/admin/courses/{{ course.id }}/assign">
+        <div class="mb-3">
+          <label class="form-label">Due Date <small class="text-muted">(optional)</small></label>
+          <input type="date" name="due_date" class="form-control" style="max-width:200px">
+        </div>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="form-label mb-0">Select Employees</label>
+            <div>
+              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectAll(true)">Select All</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary ms-1" onclick="selectAll(false)">Deselect All</button>
+            </div>
+          </div>
+          <div class="border rounded p-2" style="max-height:320px;overflow-y:auto">
+          {% for e in employees %}
+          <div class="form-check py-1 border-bottom">
+            <input class="form-check-input emp-check" type="checkbox" name="user_ids" value="{{ e.id }}"
+                   id="emp{{ e.id }}" {{ 'checked' if e.assigned }}>
+            <label class="form-check-label w-100" for="emp{{ e.id }}">
+              <strong>{{ e.name }}</strong>
+              {% if e.department %}<span class="text-muted small ms-2">{{ e.department }}</span>{% endif %}
+              {% if e.assigned %}<span class="badge bg-success ms-2 float-end">Assigned</span>{% endif %}
+            </label>
+          </div>
+          {% else %}
+          <p class="text-muted text-center py-3">No employees found.</p>
+          {% endfor %}
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>Save Assignments</button>
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Add Lesson Modal -->
+<div class="modal fade" id="addLessonModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="/admin/courses/{{ course.id }}/lessons/new">
+        <div class="modal-header"><h5 class="modal-title">Add Lesson</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <label class="form-label">Lesson Title</label>
+          <input type="text" name="title" class="form-control" required placeholder="e.g. Introduction to PPE">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Lesson</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Question Modal -->
+<div class="modal fade" id="addQuestionModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="POST" action="/admin/courses/{{ course.id }}/questions/new" id="qForm">
+        <div class="modal-header"><h5 class="modal-title">Add Question</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Question Type</label>
+            <select name="question_type" class="form-select" id="qtype" onchange="toggleType()">
+              <option value="multiple_choice">Multiple Choice</option>
+              <option value="true_false">True / False</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Question Text *</label>
+            <textarea name="question_text" class="form-control" rows="3" required placeholder="Enter your question here…"></textarea>
+          </div>
+          <div id="mcOptions">
+            <label class="form-label">Answer Options <small class="text-muted">(mark the correct one)</small></label>
+            <div id="optionsList">
+              <div class="input-group mb-2">
+                <div class="input-group-text"><input type="radio" name="correct_option" value="0" checked></div>
+                <input type="text" name="option_text" class="form-control" placeholder="Option A (correct)" required>
+              </div>
+              <div class="input-group mb-2">
+                <div class="input-group-text"><input type="radio" name="correct_option" value="1"></div>
+                <input type="text" name="option_text" class="form-control" placeholder="Option B">
+              </div>
+              <div class="input-group mb-2">
+                <div class="input-group-text"><input type="radio" name="correct_option" value="2"></div>
+                <input type="text" name="option_text" class="form-control" placeholder="Option C (optional)">
+              </div>
+              <div class="input-group mb-2">
+                <div class="input-group-text"><input type="radio" name="correct_option" value="3"></div>
+                <input type="text" name="option_text" class="form-control" placeholder="Option D (optional)">
+              </div>
+            </div>
+          </div>
+          <div id="tfNotice" class="alert alert-info py-2 d-none">
+            True/False options will be added automatically.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Question</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function toggleType(){
+  const tf = document.getElementById('qtype').value === 'true_false';
+  document.getElementById('mcOptions').classList.toggle('d-none', tf);
+  document.getElementById('tfNotice').classList.toggle('d-none', !tf);
+  document.querySelectorAll('#optionsList input[name=option_text]').forEach(i=>i.required=!tf);
+}
+function selectAll(v){
+  document.querySelectorAll('.emp-check').forEach(c=>c.checked=v);
+}
+</script>
+{% endblock %}

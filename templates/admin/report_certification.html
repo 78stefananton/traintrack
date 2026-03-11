@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Report – {{ ctype.name }}{% endblock %}
+{% block page_title %}Certification Report{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="/admin/reports" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <h5 class="mb-0">Report: {{ ctype.name }}</h5>
+  <span class="badge bg-secondary">{{ ctype.category }}</span>
+  <button onclick="window.print()" class="btn btn-sm btn-outline-secondary ms-auto"><i class="bi bi-printer me-1"></i>Print</button>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-sm-3"><div class="card text-center py-2">
+    <div class="fs-3 fw-bold text-primary">{{ with_cert|length }}</div>
+    <div class="text-muted small">Have This Cert</div>
+  </div></div>
+  <div class="col-sm-3"><div class="card text-center py-2">
+    <div class="fs-3 fw-bold text-danger">{{ without_cert|length }}</div>
+    <div class="text-muted small">Missing This Cert</div>
+  </div></div>
+  <div class="col-sm-3"><div class="card text-center py-2">
+    <div class="fs-3 fw-bold text-warning">
+      {{ with_cert|selectattr('expiry_date','le',thirty)|list|length }}
+    </div>
+    <div class="text-muted small">Expiring &lt;30d</div>
+  </div></div>
+  <div class="col-sm-3"><div class="card text-center py-2">
+    <div class="fs-3 fw-bold text-secondary">{{ ctype.validity_months }} months</div>
+    <div class="text-muted small">Validity Period</div>
+  </div></div>
+</div>
+
+{% if with_cert %}
+<div class="card mb-3">
+  <div class="card-header text-success"><i class="bi bi-check-circle me-2"></i>Employees With This Certification</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Name</th><th>Dept</th><th>Emp ID</th><th>Issue Date</th><th>Expiry Date</th><th>Status</th><th>Cert #</th></tr></thead>
+      <tbody>
+      {% for c in with_cert %}
+      {% if c.expiry_date < today %}
+        {% set badge='danger' %}{% set label='Expired' %}
+      {% elif c.expiry_date <= thirty %}
+        {% set badge='warning' %}{% set label='Expiring Soon' %}
+      {% else %}
+        {% set badge='success' %}{% set label='Valid' %}
+      {% endif %}
+      <tr>
+        <td><a href="/admin/reports/person/{{ c.cid }}"><strong>{{ c.name }}</strong></a></td>
+        <td>{{ c.department or '—' }}</td>
+        <td>{{ c.employee_id or '—' }}</td>
+        <td>{{ c.issue_date }}</td>
+        <td class="fw-semibold text-{{ badge }}">{{ c.expiry_date }}</td>
+        <td><span class="badge bg-{{ badge }}">{{ label }}</span></td>
+        <td>{{ c.certificate_number or '—' }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if without_cert %}
+<div class="card">
+  <div class="card-header text-danger"><i class="bi bi-x-circle me-2"></i>Employees Missing This Certification</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Name</th><th>Department</th><th>Employee ID</th></tr></thead>
+      <tbody>
+      {% for e in without_cert %}
+      <tr>
+        <td><strong>{{ e.name }}</strong></td>
+        <td>{{ e.department or '—' }}</td>
+        <td>{{ e.employee_id or '—' }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+<p class="text-muted small text-end mt-2">Report generated: {{ today }}</p>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Edit Lesson – {{ lesson.title }}{% endblock %}
+{% block page_title %}Lesson Editor{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="/admin/courses/{{ lesson.course_id }}/builder" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i></a>
+  <h5 class="mb-0">Edit Lesson</h5>
+</div>
+
+<div class="row g-3">
+<div class="col-lg-8">
+<div class="card mb-3">
+  <div class="card-header"><i class="bi bi-pencil-square me-2"></i>Lesson Content</div>
+  <div class="card-body">
+    <form method="POST" enctype="multipart/form-data" id="lessonForm">
+      <div class="mb-3">
+        <label class="form-label">Lesson Title *</label>
+        <input type="text" name="title" class="form-control" required value="{{ lesson.title }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Content <small class="text-muted">(Markdown supported)</small></label>
+        <textarea name="content" id="content">{{ lesson.content }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label"><i class="bi bi-play-circle me-1"></i>Video URL <small class="text-muted">(YouTube or Vimeo)</small></label>
+        <input type="url" name="video_url" class="form-control" value="{{ lesson.video_url }}"
+               placeholder="https://www.youtube.com/watch?v=...">
+      </div>
+      <div class="mb-3">
+        <label class="form-label"><i class="bi bi-paperclip me-1"></i>Attach File
+          <small class="text-muted">(PDF, PPTX, DOCX, images, video – max 50MB)</small></label>
+        <input type="file" name="file" class="form-control"
+               accept=".pdf,.pptx,.ppt,.docx,.doc,.png,.jpg,.jpeg,.gif,.mp4,.webm,.mov,.xlsx">
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>Save Lesson</button>
+        <a href="/admin/courses/{{ lesson.course_id }}/builder" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+<div class="col-lg-4">
+  <!-- Attached Files -->
+  <div class="card mb-3">
+    <div class="card-header"><i class="bi bi-paperclip me-2"></i>Attached Files</div>
+    <div class="card-body p-0">
+      {% if files %}
+      <ul class="list-group list-group-flush">
+      {% for f in files %}
+      <li class="list-group-item d-flex align-items-center gap-2">
+        <i class="bi bi-{% if f.file_type=='pdf' %}file-pdf text-danger{% elif f.file_type in ['pptx','ppt'] %}file-earmark-slides text-warning{% elif f.file_type in ['docx','doc'] %}file-word text-primary{% elif f.file_type in ['png','jpg','jpeg','gif'] %}image text-success{% else %}file-earmark{% endif %} fs-5"></i>
+        <div class="flex-grow-1 text-truncate" style="max-width:160px">
+          <a href="/uploads/{{ f.filename }}" target="_blank" class="text-decoration-none">{{ f.original_name }}</a>
+        </div>
+        <form method="POST" action="/admin/lesson-files/{{ f.id }}/delete" onsubmit="return confirm('Delete?')">
+          <button class="btn btn-sm btn-outline-danger p-0 px-1"><i class="bi bi-x"></i></button>
+        </form>
+      </li>
+      {% endfor %}
+      </ul>
+      {% else %}
+      <div class="text-center text-muted py-3 small">No files attached yet.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Preview hint -->
+  <div class="card">
+    <div class="card-header"><i class="bi bi-info-circle me-2"></i>Tips</div>
+    <div class="card-body small text-muted">
+      <ul class="mb-0 ps-3">
+        <li>Use <strong>Markdown</strong> for formatting: **bold**, ## headings, - lists</li>
+        <li>Paste a <strong>YouTube</strong> or <strong>Vimeo</strong> link for embedded video</li>
+        <li>Attach <strong>PPTX/PDF</strong> slides employees can download</li>
+        <li>Attach <strong>images</strong> to illustrate procedures</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<script>
+new EasyMDE({
+  element: document.getElementById('content'),
+  spellChecker: false,
+  toolbar: ['bold','italic','heading','|','unordered-list','ordered-list','|',
+            'link','image','|','preview','guide'],
+  minHeight: '250px'
+});
+</script>
+{% endblock %}
