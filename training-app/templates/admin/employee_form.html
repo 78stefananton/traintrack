@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit' if employee else 'New' }} Employee{% endblock %}
+{% block page_title %}{{ 'Edit' if employee else 'Add' }} Employee{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-md-7">
+<div class="card">
+  <div class="card-header"><i class="bi bi-person me-2"></i>{{ 'Edit' if employee else 'New' }} Employee</div>
+  <div class="card-body p-4">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Full Name *</label>
+          <input type="text" name="name" class="form-control" required value="{{ employee.name if employee else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email *</label>
+          <input type="email" name="email" class="form-control" required value="{{ employee.email if employee else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Employee ID</label>
+          <input type="text" name="employee_id" class="form-control" value="{{ employee.employee_id if employee else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Phone</label>
+          <input type="text" name="phone" class="form-control" value="{{ employee.phone if employee else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Department</label>
+          <input type="text" name="department" class="form-control" value="{{ employee.department if employee else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Position</label>
+          <input type="text" name="position" class="form-control" value="{{ employee.position if employee else '' }}">
+        </div>
+        {% if employee %}
+        <div class="col-12">
+          <label class="form-label">New Password <small class="text-muted">(leave blank to keep current)</small></label>
+          <input type="password" name="new_password" class="form-control" minlength="6">
+        </div>
+        <div class="col-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {{ 'checked' if employee.is_active }}>
+            <label class="form-check-label" for="isActive">Active (can log in)</label>
+          </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+          <label class="form-label">Password *</label>
+          <input type="password" name="password" class="form-control" required minlength="6">
+        </div>
+        {% endif %}
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check2 me-1"></i>{{ 'Update' if employee else 'Create Employee' }}</button>
+          <a href="/admin/employees" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+</div>
+{% endblock %}

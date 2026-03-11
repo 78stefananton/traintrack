@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Certification Types{% endblock %}
+{% block page_title %}Certification Types{% endblock %}
+{% block content %}
+<div class="row g-4">
+<div class="col-md-5">
+  <div class="card">
+    <div class="card-header"><i class="bi bi-plus-circle me-2"></i>Add Certification Type</div>
+    <div class="card-body">
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label">Name *</label>
+          <input type="text" name="name" class="form-control" required placeholder="e.g. First Aid, Medical Fitness">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Category</label>
+          <select name="category" class="form-select">
+            {% for cat in ['Medical','Safety','Technical','Professional','Legal','Other'] %}
+            <option>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Validity (months)</label>
+          <input type="number" name="validity_months" class="form-control" value="12" min="1" max="120">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <textarea name="description" class="form-control" rows="2" placeholder="Optional notes…"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check2 me-1"></i>Add Type</button>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="col-md-7">
+  <div class="card">
+    <div class="card-header"><i class="bi bi-tags me-2"></i>All Certification Types</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead><tr><th>Name</th><th>Category</th><th>Validity</th><th>In Use</th></tr></thead>
+        <tbody>
+        {% for t in cert_types %}
+        <tr>
+          <td><strong>{{ t.name }}</strong>
+            {% if t.description %}<div class="text-muted small">{{ t.description }}</div>{% endif %}
+          </td>
+          <td><span class="badge bg-secondary bg-opacity-10 text-secondary">{{ t.category }}</span></td>
+          <td>{{ t.validity_months }} months</td>
+          <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ t.usage }} employees</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-center text-muted py-4">No certification types yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}{{ lesson.title }}{% endblock %}
+{% block page_title %}{{ lesson.title }}{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.css">
+<script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="/courses/{{ course.id }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <h5 class="mb-0">{{ lesson.title }}</h5>
+</div>
+
+<div class="row g-3">
+<div class="col-lg-8">
+  <!-- Lesson content -->
+  {% if lesson.content %}
+  <div class="card mb-3">
+    <div class="card-body markdown-body" id="lessonContent" style="min-height:120px">
+      {{ lesson.content }}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Video embed -->
+  {% if lesson.video_url %}
+  {% set embed = get_video_embed(lesson.video_url) %}
+  {% if embed %}
+  <div class="card mb-3">
+    <div class="card-header"><i class="bi bi-play-circle me-2"></i>Video</div>
+    <div class="card-body p-0">
+      <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden">
+        <iframe src="{{ embed }}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0"
+                allowfullscreen loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  <!-- Files -->
+  {% if files %}
+  <div class="card mb-3">
+    <div class="card-header"><i class="bi bi-paperclip me-2"></i>Attachments</div>
+    <div class="list-group list-group-flush">
+    {% for f in files %}
+    <a href="/uploads/{{ f.filename }}" target="_blank" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
+      <i class="bi bi-{% if f.file_type=='pdf' %}file-pdf text-danger{% elif f.file_type in ['pptx','ppt'] %}file-earmark-slides text-warning{% elif f.file_type in ['docx','doc'] %}file-word text-primary{% elif f.file_type in ['png','jpg','jpeg','gif'] %}image text-success{% else %}file-earmark text-secondary{% endif %} fs-5"></i>
+      <div>
+        <div class="fw-semibold">{{ f.original_name }}</div>
+        <div class="text-muted small text-uppercase">{{ f.file_type }} file</div>
+      </div>
+      <i class="bi bi-download ms-auto text-muted"></i>
+    </a>
+    {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<div class="col-lg-4">
+  <div class="card">
+    <div class="card-header"><i class="bi bi-chevron-bar-right me-2"></i>Navigation</div>
+    <div class="card-body d-flex flex-column gap-2">
+      {% if prev_id %}
+      <a href="/courses/{{ course.id }}/lesson/{{ prev_id }}" class="btn btn-outline-secondary">
+        <i class="bi bi-chevron-left me-1"></i>Previous Lesson</a>
+      {% endif %}
+      {% if next_id %}
+      <a href="/courses/{{ course.id }}/lesson/{{ next_id }}" class="btn btn-primary">
+        Next Lesson <i class="bi bi-chevron-right ms-1"></i></a>
+      {% else %}
+      <a href="/courses/{{ course.id }}" class="btn btn-outline-primary">
+        <i class="bi bi-grid me-1"></i>Back to Course</a>
+      {% endif %}
+      <hr class="my-1">
+      <a href="/courses/{{ course.id }}/test" class="btn btn-success">
+        <i class="bi bi-pencil-square me-1"></i>Take Test</a>
+    </div>
+  </div>
+  <div class="card mt-3">
+    <div class="card-header"><i class="bi bi-book me-2"></i>{{ course.title }}</div>
+    <div class="card-body p-2">
+      <div class="text-muted small">{{ course.category }} &bull; Pass: {{ course.passing_score }}%</div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// Render Markdown content
+const el = document.getElementById('lessonContent');
+if(el){
+  const raw = el.textContent;
+  el.innerHTML = marked.parse(raw);
+}
+</script>
+{% endblock %}

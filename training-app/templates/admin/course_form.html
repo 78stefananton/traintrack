@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit' if course else 'New' }} Course{% endblock %}
+{% block page_title %}{{ 'Edit' if course else 'New' }} Course{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-md-6">
+<div class="card">
+  <div class="card-header"><i class="bi bi-book me-2"></i>{{ 'Edit Course' if course else 'Create New Course' }}</div>
+  <div class="card-body p-4">
+    <form method="POST">
+      <div class="mb-3">
+        <label class="form-label">Course Title *</label>
+        <input type="text" name="title" class="form-control" required value="{{ course.title if course else '' }}" placeholder="e.g. Confined Space Entry – Level 1">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control" rows="3" placeholder="Brief overview of this course…">{{ course.description if course else '' }}</textarea>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Category</label>
+          <select name="category" class="form-select">
+            {% for cat in ['General','HSE','Technical','Fire Safety','First Aid','Environmental','Operations','Management'] %}
+            <option value="{{ cat }}" {{ 'selected' if course and course.category==cat else '' }}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Passing Score (%)</label>
+          <input type="number" name="passing_score" class="form-control" min="1" max="100"
+                 value="{{ course.passing_score if course else 70 }}">
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check2 me-1"></i>{{ 'Save Changes' if course else 'Create & Add Lessons' }}</button>
+        <a href="/admin/courses" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+</div>
+{% endblock %}

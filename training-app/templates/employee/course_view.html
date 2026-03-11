@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.title }}{% endblock %}
+{% block page_title %}{{ course.title }}{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="/dashboard" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <h5 class="mb-0">{{ course.title }}</h5>
+  <span class="badge bg-primary bg-opacity-10 text-primary">{{ course.category }}</span>
+</div>
+
+{% if best_comp %}
+<div class="alert alert-{{ 'success' if best_comp.passed else 'warning' }} d-flex align-items-center gap-2 mb-3">
+  <i class="bi bi-{% if best_comp.passed %}trophy-fill{% else %}arrow-repeat{% endif %} fs-5"></i>
+  <div>
+    {% if best_comp.passed %}
+    <strong>You passed this course!</strong> Best score: {{ best_comp.score|int }}% ({{ attempts }} attempt{{ 's' if attempts != 1 }})
+    {% else %}
+    Best score so far: <strong>{{ best_comp.score|int }}%</strong> — need {{ course.passing_score }}% to pass.
+    You can retake the test.
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% if course.description %}
+<p class="text-muted mb-3">{{ course.description }}</p>
+{% endif %}
+
+<div class="row g-3">
+<div class="col-lg-8">
+  <div class="card">
+    <div class="card-header"><i class="bi bi-journals me-2"></i>Lessons</div>
+    <div class="list-group list-group-flush">
+    {% if lessons %}
+    {% for l in lessons %}
+    <a href="/courses/{{ course.id }}/lesson/{{ l.id }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+      <div class="flex-shrink-0">
+        {% if l.done %}
+        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+        {% else %}
+        <i class="bi bi-circle text-muted fs-5"></i>
+        {% endif %}
+      </div>
+      <div class="flex-grow-1">
+        <div class="fw-semibold">{{ loop.index }}. {{ l.title }}</div>
+        <div class="text-muted small">
+          {% if l.video_url %}<i class="bi bi-play-circle me-1"></i>Video {% endif %}
+          {% if l.fcount > 0 %}<i class="bi bi-paperclip me-1"></i>{{ l.fcount }} file(s) {% endif %}
+          {% if l.content %}<i class="bi bi-text-left me-1"></i>Content{% endif %}
+        </div>
+      </div>
+      <i class="bi bi-chevron-right text-muted"></i>
+    </a>
+    {% endfor %}
+    {% else %}
+    <div class="list-group-item text-muted text-center py-4">No lessons added yet.</div>
+    {% endif %}
+    </div>
+  </div>
+</div>
+<div class="col-lg-4">
+  <div class="card">
+    <div class="card-header"><i class="bi bi-info-circle me-2"></i>Course Info</div>
+    <div class="card-body">
+      <div class="mb-2"><span class="text-muted small">Category</span><div>{{ course.category }}</div></div>
+      <div class="mb-2"><span class="text-muted small">Passing Score</span><div>{{ course.passing_score }}%</div></div>
+      <div class="mb-3"><span class="text-muted small">Lessons</span><div>{{ lessons|length }}</div></div>
+      {% if has_test %}
+      <a href="/courses/{{ course.id }}/test" class="btn btn-primary w-100">
+        <i class="bi bi-pencil-square me-1"></i>
+        {{ 'Retake Test' if attempts else 'Take Test' }}</a>
+      {% else %}
+      <div class="alert alert-info py-2 small mb-0">No test for this course yet.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

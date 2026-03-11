@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}My Certifications{% endblock %}
+{% block page_title %}My Certifications{% endblock %}
+{% block content %}
+<h5 class="mb-3"><i class="bi bi-patch-check me-2"></i>My Certifications</h5>
+{% if certs %}
+<div class="row g-3">
+{% for c in certs %}
+{% if c.expiry_date < today %}
+  {% set badge='danger' %}{% set label='Expired' %}{% set icon='x-circle-fill' %}
+{% elif c.expiry_date <= thirty %}
+  {% set badge='warning' %}{% set label='Expiring Soon' %}{% set icon='exclamation-triangle-fill' %}
+{% else %}
+  {% set badge='success' %}{% set label='Valid' %}{% set icon='check-circle-fill' %}
+{% endif %}
+<div class="col-md-6">
+  <div class="card h-100 border-{{ badge }} border-opacity-25">
+    <div class="card-body">
+      <div class="d-flex align-items-start justify-content-between mb-2">
+        <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ c.category }}</span>
+        <span class="badge bg-{{ badge }}"><i class="bi bi-{{ icon }} me-1"></i>{{ label }}</span>
+      </div>
+      <h6 class="fw-bold">{{ c.cname }}</h6>
+      {% if c.description %}<p class="text-muted small mb-2">{{ c.description }}</p>{% endif %}
+      <div class="row g-1 small text-muted">
+        <div class="col-6"><i class="bi bi-calendar me-1"></i>Issued: <strong>{{ c.issue_date }}</strong></div>
+        <div class="col-6"><i class="bi bi-calendar-x me-1"></i>Expires: <strong class="text-{{ badge }}">{{ c.expiry_date }}</strong></div>
+        {% if c.issuer %}<div class="col-6"><i class="bi bi-building me-1"></i>{{ c.issuer }}</div>{% endif %}
+        {% if c.certificate_number %}<div class="col-6"><i class="bi bi-hash me-1"></i>{{ c.certificate_number }}</div>{% endif %}
+      </div>
+      {% if c.file_path %}
+      <a href="/uploads/{{ c.file_path }}" target="_blank" class="btn btn-sm btn-outline-secondary mt-2">
+        <i class="bi bi-file-earmark me-1"></i>View Certificate</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="card text-center py-5 text-muted">
+  <i class="bi bi-patch-check fs-1 d-block mb-2 text-secondary"></i>
+  No certifications on file. Contact your manager.
+</div>
+{% endif %}
+{% endblock %}

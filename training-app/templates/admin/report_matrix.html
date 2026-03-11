@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Training Matrix{% endblock %}
+{% block page_title %}Training Matrix{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="/admin/reports" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <h5 class="mb-0">Training Matrix – All Employees × All Courses</h5>
+  <button onclick="window.print()" class="btn btn-sm btn-outline-secondary ms-auto"><i class="bi bi-printer me-1"></i>Print</button>
+</div>
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+    <table class="table table-bordered table-sm mb-0" style="min-width:600px">
+      <thead>
+        <tr>
+          <th style="min-width:160px">Employee</th>
+          {% for c in courses %}
+          <th class="text-center" style="min-width:90px;font-size:.72rem;vertical-align:bottom">
+            <div style="writing-mode:vertical-rl;transform:rotate(180deg);height:100px">{{ c.title[:30] }}</div>
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+      {% for e in employees %}
+      <tr>
+        <td>
+          <a href="/admin/reports/person/{{ e.id }}" class="text-decoration-none">
+            <strong>{{ e.name }}</strong></a>
+          {% if e.department %}<div class="text-muted small">{{ e.department }}</div>{% endif %}
+        </td>
+        {% for c in courses %}
+        {% set data = matrix.get((e.id, c.id)) %}
+        <td class="text-center">
+          {% if data %}
+            {% if data.passed %}
+            <span class="badge bg-success" title="{{ data.score|int }}%">✓ {{ data.score|int }}%</span>
+            {% else %}
+            <span class="badge bg-danger" title="{{ data.score|int }}%">✗ {{ data.score|int }}%</span>
+            {% endif %}
+          {% else %}
+            <span class="text-muted small">—</span>
+          {% endif %}
+        </td>
+        {% endfor %}
+      </tr>
+      {% else %}
+      <tr><td colspan="{{ courses|length + 1 }}" class="text-center text-muted py-3">No employees.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+<div class="d-flex gap-3 mt-2 text-muted small">
+  <span><span class="badge bg-success">✓</span> Passed</span>
+  <span><span class="badge bg-danger">✗</span> Attempted, not passed</span>
+  <span>— Not attempted</span>
+</div>
+{% endblock %}

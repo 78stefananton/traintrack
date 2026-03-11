@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Test – {{ course.title }}{% endblock %}
+{% block page_title %}Course Test{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="/courses/{{ course.id }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <h5 class="mb-0">Test: {{ course.title }}</h5>
+  <span class="badge bg-secondary ms-auto">Pass: {{ course.passing_score }}%</span>
+</div>
+
+<div class="row justify-content-center">
+<div class="col-md-8">
+  <div class="alert alert-info d-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-info-circle-fill"></i>
+    <div>Answer all questions below. You need <strong>{{ course.passing_score }}%</strong> to pass.
+    You can retake if you don't pass.</div>
+  </div>
+
+  <form method="POST" action="/courses/{{ course.id }}/test" id="testForm">
+    {% for i, q in questions|enumerate %}
+    <div class="card mb-3" id="q{{ i }}">
+      <div class="card-header d-flex align-items-center gap-2">
+        <span class="badge bg-primary rounded-pill">{{ loop.index }}</span>
+        <span class="fw-semibold">{{ q.text }}</span>
+      </div>
+      <div class="card-body">
+        {% for opt in q.opts %}
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="radio" name="q_{{ q.id }}" value="{{ opt.id }}"
+                 id="opt{{ opt.id }}" required>
+          <label class="form-check-label" for="opt{{ opt.id }}">{{ opt.text }}</label>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="card">
+      <div class="card-body d-flex gap-3 justify-content-between align-items-center">
+        <span class="text-muted small"><strong id="answeredCount">0</strong>/{{ questions|length }} answered</span>
+        <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
+          <i class="bi bi-send me-1"></i>Submit Test</button>
+      </div>
+    </div>
+  </form>
+</div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// Track answered count
+const inputs = document.querySelectorAll('input[type=radio]');
+const names  = new Set();
+inputs.forEach(i=>names.add(i.name));
+function updateCount(){
+  let answered=0;
+  names.forEach(n=>{if(document.querySelector(`input[name="${n}"]:checked`))answered++;});
+  document.getElementById('answeredCount').textContent=answered;
+}
+inputs.forEach(i=>i.addEventListener('change',updateCount));
+
+// Confirm before submit
+document.getElementById('testForm').addEventListener('submit',function(e){
+  const answered=parseInt(document.getElementById('answeredCount').textContent);
+  const total={{ questions|length }};
+  if(answered<total){
+    e.preventDefault();
+    if(confirm(`You have only answered ${answered} of ${total} questions. Submit anyway?`)){
+      this.submit();
+    }
+  }
+});
+</script>
+{% endblock %}

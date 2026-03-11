@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Edit Certification{% endblock %}
+{% block page_title %}Edit Certification{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-md-7">
+<div class="card">
+  <div class="card-header">
+    <i class="bi bi-pencil me-2"></i>Edit: {{ cert.cname }} – {{ cert.uname }}</div>
+  <div class="card-body p-4">
+    <form method="POST" enctype="multipart/form-data">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Issue Date *</label>
+          <input type="date" name="issue_date" class="form-control" required value="{{ cert.issue_date }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Expiry Date *</label>
+          <input type="date" name="expiry_date" class="form-control" required value="{{ cert.expiry_date }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Issued By</label>
+          <input type="text" name="issuer" class="form-control" value="{{ cert.issuer }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Certificate Number</label>
+          <input type="text" name="certificate_number" class="form-control" value="{{ cert.certificate_number }}">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Notes</label>
+          <textarea name="notes" class="form-control" rows="2">{{ cert.notes }}</textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Replace Certificate File</label>
+          {% if cert.file_path %}
+          <div class="mb-1"><a href="/uploads/{{ cert.file_path }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-file-earmark me-1"></i>View Current File</a></div>
+          {% endif %}
+          <input type="file" name="cert_file" class="form-control" accept=".pdf,.png,.jpg,.jpeg,.gif">
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>Update</button>
+          <a href="/admin/certifications" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+</div>
+{% endblock %}
